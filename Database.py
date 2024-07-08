@@ -1,17 +1,16 @@
 import mysql.connector
 import pandas as pd
-from tkinter import *
 
 class Database:
     def __init__(self):
         self.connection = mysql.connector.connect(user='root',
-                                                  password='',
+                                                  password='bd24',
                                                   host='localhost',
                                                   database='db_climed')
         self.resultadoQuery = None
 
 
-    def todasConsultas(self):
+    def printaConsultas(self):
         query = '''
         SELECT * FROM db_climed.consulta;
         '''
@@ -27,8 +26,29 @@ class Database:
                 return 'Certifique-se de preencher todos os campos!'
 
         query = f'''
-        INSERT INTO Consulta (CRM, IdEsp, IdPac, Dia, HoraInicioCon, HoraFimCon, Pagou, ValorPago, FormaPagamento) 
-        VALUES({medico}, {especialidade}, {paciente}, {dia}, {hInicio}, {hFim}, {pago}, {total}, {tipoPagamento});
+        INSERT INTO Consulta (CRM, IdEsp, IdPac, Dia, HoraInicioCon, HoraFimCon, Pagou, ValorPago, FormaPagamento) VALUES 
+        ({medico}, {especialidade}, {paciente}, '{dia}', '{hInicio}', '{hFim}', {pago}, {total}, '{tipoPagamento}');
+        '''
+
+
+        self.resultadoQuery = pd.read_sql(query, self.connection)
+
+        if not self.resultadoQuery.empty:
+            return self.resultadoQuery.to_string(index=False)
+
+
+
+
+    def printaAgendaPorFiltro(self, opcao, filtro):
+        if opcao == 'Medico':
+            filtroQuery = f"CRM = {filtro}"
+        else:
+            filtroQuery = f"Dia = '{filtro}'"
+
+        query = f'''
+        SELECT *
+        FROM Agenda
+        WHERE {filtroQuery}
         '''
 
         self.resultadoQuery = pd.read_sql(query, self.connection)
@@ -36,4 +56,5 @@ class Database:
         if not self.resultadoQuery.empty:
             return self.resultadoQuery.to_string(index=False)
 
-        return
+        return 'Nenhum registro existente!'
+
